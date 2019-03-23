@@ -25,9 +25,15 @@ public class IntegrityVerifierClient {
             String message = JOptionPane.showInputDialog(null, "Introduzca su mensaje:");
             // Envío del mensaje al servidor
             output.println(message);
-            mac.update(message.getBytes());
+            String offset = Utils.getOffset();
+            if (offset == "" || offset==null) {
+            	offset = "0";
+            }
+            output.println(offset);
+            mac.update((message+offset).getBytes("UTF-8"));
             // Habría que calcular el correspondiente MAC con la clave compartida por servidor/cliente
-            output.println(new String(mac.doFinal()));
+            byte[] macByte = mac.doFinal();
+            output.println(new String(macByte));
             // Importante para que el mensaje se envíe
             output.flush();
             // Crea un objeto BufferedReader para leer la respuesta del servidor
@@ -36,6 +42,7 @@ public class IntegrityVerifierClient {
             String respuesta = input.readLine();
             // Muestra la respuesta al cliente
             JOptionPane.showMessageDialog(null, respuesta);
+            Utils.setOffset(new Integer(offset)+1);
             // Se cierra la conexion
             output.close();
             input.close();
