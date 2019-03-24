@@ -1,9 +1,9 @@
 package servidor;
 
 import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ServerSocketFactory;
-import javax.swing.JOptionPane;
-
 import utils.Utils;
 
 import java.io.*;
@@ -18,8 +18,9 @@ import java.util.Map;
 public class IntegrityVerifierServer {
     private ServerSocket serverSocket;
     private Map<String, Integer> clientOffsets;
-    private Integer totalCalls;
-    private Integer correctCalls;
+    private Map<String, String> clientKeys;
+    private Double totalCalls;
+    private Double correctCalls;
 
     // Constructor del Servidor
     public IntegrityVerifierServer() throws Exception {
@@ -28,16 +29,15 @@ public class IntegrityVerifierServer {
         // Creación de un objeto ServerSocket escuchando peticiones en el puerto 7070
         serverSocket = (ServerSocket ) socketFactory.createServerSocket(7070);
         clientOffsets = new HashMap<String, Integer>();
-        totalCalls = 0;
-        correctCalls = 0;
+        clientKeys = Utils.getClientKeys();
+        totalCalls = 0.;
+        correctCalls = 0.;
         
     }
     // Ejecución del servidor para escuchar peticiones de los clientes
     public void runServer() throws NoSuchAlgorithmException, InvalidKeyException{
     	
-        
         Mac mac = Mac.getInstance("HmacSHA512");
-        mac.init(Utils.getKey());
         
         while (true) {
             // Espera las peticiones del cliente para comprobar mensaje/MAC
@@ -52,7 +52,13 @@ public class IntegrityVerifierServer {
                 // Se lee del cliente el mensaje y el macdelMensajeEnviado
                 String message = input.readLine();
                 String clientId = message.split(",")[0];
-                
+                if(!clientKeys.containsKey(clientId)) {
+                	System.err.println("El usuario no tiene su clave registrada en el sistema");
+                	Utils.writeLog("El usuario"+clientId+" no tiene su clave registrada en el sistema");
+                	continue;
+                }
+                SecretKey key = new SecretKeySpec(Utils.decodeHexString(clientKeys.get(clientId)), "HmacSHA512");
+                mac.init(key);
                 if (clientOffsets.containsKey(clientId)){
                  lastOffset = clientOffsets.get(clientId);
                 }
@@ -66,16 +72,15 @@ public class IntegrityVerifierServer {
                 if (Arrays.equals(macDelMensajeCalculado.getBytes(), macdelMensajeEnviado.getBytes()) && new Integer(offset) > lastOffset) {
                     output.println( "Mensaje enviado integro " );
                     clientOffsets.put(clientId, new Integer(offset));
-                    System.out.println(clientOffsets);
-                    correctCalls+=1;
-                    totalCalls+=1;
+                    correctCalls+=1.;
+                    totalCalls+=1.;
                 } else {
-                    output.println( "Mensaje enviado no integro. "+macdelMensajeEnviado+" - OTRO - "+macDelMensajeCalculado);
-                    System.out.println(clientOffsets);
-                    Utils.writeLog(message);
-                    totalCalls+=1;
+                    output.println( "Mensaje enviado no integro.");
+                    Utils.writeLog("El mensaje :"+message+" ha sufrido un problema de integridad.");
+                    totalCalls+=1.;
                 }
-                Utils.updateKpi((double) (correctCalls/totalCalls));
+                System.out.println("KPI: "+correctCalls/totalCalls);
+                Utils.updateKpi(correctCalls/totalCalls);
                 output.close();
                 input.close();
                 socket.close();

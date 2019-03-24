@@ -1,0 +1,8 @@
+[Sat Mar 23 11:24:52 CET 2019] The message '12,1u2,12' has an integrity problem.
+[Sun Mar 24 11:36:00 CET 2019] The message '12,12' has an integrity problem.
+[Sun Mar 24 11:39:34 CET 2019] The message '12,12' has an integrity problem.
+[Sun Mar 24 11:40:58 CET 2019] The message '12,12' has an integrity problem.
+[Sun Mar 24 11:43:58 CET 2019] The message '12,12' has an integrity problem.
+[Sun Mar 24 11:45:53 CET 2019] The message '12,23u48' has an integrity problem.
+[Sun Mar 24 11:50:41 CET 2019] The message 'El usuario123 no tiene su clave registrada en el sistema' has an integrity problem.
+[Sun Mar 24 11:57:46 CET 2019]El mensaje :12,98234 ha sufrido un problema de integridad.
